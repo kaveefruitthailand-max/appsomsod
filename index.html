@@ -11002,7 +11002,7 @@ function faOpenPreviewSheet(){
 }
 function faPreviewFull(){
   document.getElementById('fa-sheet').classList.remove('open');
-  document.getElementById('fa-ov').classList.remove('open');
+  document.getElementById('fa-ov')?.classList.remove('open');
   faSaveDoc(false);
   faPreviewMode='full';
   faRenderPreviewContent();
