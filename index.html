@@ -1582,6 +1582,10 @@ input:focus,select:focus{border-color:var(--accent)}
       <button class="asw-btn" id="sw-finance" onclick="switchApp('finance')">
         <span class="asw-icon">💰</span><span class="asw-label">รายรับ-รายจ่าย</span>
       </button>
+      <button class="asw-btn" id="sw-inventory" onclick="switchApp('inventory')">
+        <span class="asw-icon">📦</span><span class="asw-label">คลังสินค้า</span>
+        <span class="asw-badge" id="low-stock-badge" style="display:none;background:var(--danger)">0</span>
+      </button>
       <button class="asw-btn" id="sw-print" onclick="switchApp('print')">
         <span class="asw-icon">🖨</span><span class="asw-label">ห้องพิมพ์</span>
       </button>
@@ -2280,6 +2284,51 @@ input:focus,select:focus{border-color:var(--accent)}
         <div class="biz-modal-foot">
           <button class="biz-btn" onclick="bizCloseItemModal()">ยกเลิก</button>
           <button class="biz-btn primary" onclick="bizSaveItem()">บันทึก</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INVENTORY PAGE ── -->
+    <div class="page" id="page-inventory" style="flex-direction:column;background:#f0f2f5">
+      <div class="inv-header">
+        <button class="mbtn" onclick="toggleSidebar()" style="display:flex">☰</button>
+        <div class="ch-icon" style="background:#0f766e;color:#fff">📦</div>
+        <div style="flex:1">
+          <div class="ch-name">คลังสินค้า</div>
+          <div class="ch-sub">หมวดหมู่ · รับเข้า · ตัดออก · นับสต๊อก</div>
+        </div>
+        <div class="ch-acts">
+          <button class="hbtn doc-btn light" onclick="openDataExchange('inventory')" title="ส่งออก/นำเข้า">⇅ เอกสาร</button>
+          <button class="hbtn" onclick="openCategoryManager()" title="จัดการหมวดหมู่">🗂 หมวดหมู่</button>
+          <button class="hbtn" onclick="openAddProduct()" title="เพิ่มสินค้า">＋ สินค้า</button>
+        </div>
+      </div>
+      <div class="inv-body">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">สินค้า</div><div class="kpi-val" id="kpi-count">0</div></div>
+          <div class="kpi"><div class="kpi-label">มูลค่าคลัง</div><div class="kpi-val" id="kpi-value">฿0</div></div>
+          <div class="kpi"><div class="kpi-label">ใกล้หมด</div><div class="kpi-val" id="kpi-low">0</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+          <input id="inv-search" placeholder="ค้นหาสินค้า" oninput="renderInventory()" style="flex:1;min-width:180px"/>
+          <select id="inv-cat-filter" onchange="renderInventory()" style="flex:0 1 190px"></select>
+          <button class="cat-mgr-btn" onclick="openCategoryManager()">🗂 จัดการหมวดหมู่</button>
+        </div>
+        <div class="inv-tabs">
+          <button class="inv-tab active" onclick="switchInvTab('list',this)">รายการสินค้า</button>
+          <button class="inv-tab" onclick="switchInvTab('count',this)">นับสต๊อก</button>
+          <button class="inv-tab" onclick="switchInvTab('history',this)">ประวัติ</button>
+        </div>
+        <div class="inv-section active" id="inv-list"></div>
+        <div class="inv-section" id="inv-count">
+          <div class="card">
+            <div class="card-title">นับสต๊อกวันนี้ <span id="count-date"></span></div>
+            <div id="count-list"></div>
+            <button class="btn-save" onclick="saveCount()">💾 บันทึกยอดนับ</button>
+          </div>
+        </div>
+        <div class="inv-section" id="inv-history">
+          <div id="history-list"></div>
         </div>
       </div>
     </div>
