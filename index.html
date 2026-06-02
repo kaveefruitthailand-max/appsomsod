@@ -1565,8 +1565,18 @@ input:focus,select:focus{border-color:var(--accent)}
     </div>
 
     <!-- APP SWITCHER -->
-    <div class="app-switch">
+    <div class="app-switch" id="app-switch-wrap">
+      <div style="display:flex;align-items:center;padding:4px 6px 2px;border-bottom:1px solid rgba(255,255,255,.07)">
+        <span style="font-size:10px;color:var(--muted);flex:1;letter-spacing:.5px;text-transform:uppercase">เมนูหลัก</span>
+        <button onclick="toggleAppSwitch()" id="app-switch-toggle" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px" title="พับ/ขยาย">▲</button>
+      </div>
+      <div id="app-switch-body">
       <span id="chat-unread-badge" style="display:none">0</span>
+      <button class="asw-btn" id="sw-inventory" onclick="switchApp('inventory')">
+        <span class="asw-icon">📦</span><span class="asw-label">คลังสินค้า</span>
+        <span class="asw-badge" id="low-stock-badge" style="display:none;background:var(--danger)">0</span>
+      </button>
+
       <button class="asw-btn" id="sw-factory" onclick="switchApp('factory')">
         <span class="asw-icon">🏭</span><span class="asw-label">โรงงานน้ำส้ม</span>
         <span class="asw-badge" id="factory-alert-badge" style="display:none;background:var(--danger)">0</span>
@@ -1582,10 +1592,6 @@ input:focus,select:focus{border-color:var(--accent)}
       <button class="asw-btn" id="sw-finance" onclick="switchApp('finance')">
         <span class="asw-icon">💰</span><span class="asw-label">รายรับ-รายจ่าย</span>
       </button>
-      <button class="asw-btn" id="sw-inventory" onclick="switchApp('inventory')">
-        <span class="asw-icon">📦</span><span class="asw-label">คลังสินค้า</span>
-        <span class="asw-badge" id="low-stock-badge" style="display:none;background:var(--danger)">0</span>
-      </button>
       <button class="asw-btn" id="sw-print" onclick="switchApp('print')">
         <span class="asw-icon">🖨</span><span class="asw-label">ห้องพิมพ์</span>
       </button>
@@ -1593,7 +1599,8 @@ input:focus,select:focus{border-color:var(--accent)}
         <span class="asw-icon">⚙</span><span class="asw-label">แอดมิน</span>
         <span id="admin-badge" class="admin-mini-badge" style="display:none" title="สิทธิ์แอดมินกำลังปลดล็อค"></span>
       </button>
-    </div>
+      </div><!-- end app-switch-body -->
+    </div><!-- end app-switch -->
 
     <!-- ROOM LIST (shown from app start — not gated behind cart) -->
     <div class="room-section show" id="room-section">
@@ -1919,7 +1926,7 @@ input:focus,select:focus{border-color:var(--accent)}
       <div id="fac-body" style="flex:1;min-height:0;overflow-y:auto;padding:14px"></div>
     </div>
 
-    <!-- ── PRODUCT LIST (รายการสินค้า) PAGE — central catalog ── -->
+    <!-- ── INVENTORY (คลังสินค้า) PAGE removed — merged into page-inventory ── -->
     
     <div class="page" id="page-ai" style="flex-direction:column;background:#f0f2f5">
       <div class="chat-header" style="background:linear-gradient(135deg,#27324a,#534AB7);color:#fff">
@@ -2205,16 +2212,6 @@ input:focus,select:focus{border-color:var(--accent)}
         </div>
       </div>
 
-      <!-- ══ PREVIEW OVERLAY (in-app, no popup) ══ -->
-      <div class="fa-preview-ov" id="fa-preview-ov">
-        <div class="fa-preview-bar">
-          <button class="fa-icon-btn" onclick="faClosePreview()">✕</button>
-          <div class="fa-preview-bar-title" id="fa-preview-title">พรีวิวเอกสาร</div>
-          <button class="fa-icon-btn primary" onclick="faDoPrint()">🖨 พิมพ์</button>
-        </div>
-        <div class="fa-preview-content" id="fa-preview-content"></div>
-      </div>
-
       <!-- ══ MODALS ══ -->
       <!-- Customer -->
       <div class="fa-modal-ov" id="fa-cust-modal">
@@ -2246,18 +2243,6 @@ input:focus,select:focus{border-color:var(--accent)}
           </div>
         </div>
       </div>
-      <!-- Action sheet -->
-      <div class="fa-sheet-ov" id="fa-sheet" onclick="if(event.target===this)this.classList.remove('open')">
-        <div class="fa-sheet">
-          <div class="fa-sheet-title">พรีวิว / แชร์</div>
-          <div class="fa-sheet-grp">
-            <button class="fa-sheet-btn" onclick="faPreviewFull()">📄 เอกสารเต็มรูปแบบ (A4)</button>
-            <button class="fa-sheet-btn" onclick="faPreviewSlip()">🧾 ออนไลน์สลิป</button>
-          </div>
-          <button class="fa-sheet-cancel" onclick="document.getElementById('fa-sheet').classList.remove('open')">ยกเลิก</button>
-        </div>
-      </div>
-
     </div><!-- end page-print -->
 
     <!-- BIZ ITEM MODAL -->
@@ -2288,46 +2273,55 @@ input:focus,select:focus{border-color:var(--accent)}
       </div>
     </div>
 
-    <!-- ── INVENTORY PAGE ── -->
+    <!-- ── INVENTORY (คลังสินค้า) PAGE ── -->
     <div class="page" id="page-inventory" style="flex-direction:column;background:#f0f2f5">
       <div class="inv-header">
         <button class="mbtn" onclick="toggleSidebar()" style="display:flex">☰</button>
-        <div class="ch-icon" style="background:#0f766e;color:#fff">📦</div>
         <div style="flex:1">
-          <div class="ch-name">คลังสินค้า</div>
-          <div class="ch-sub">หมวดหมู่ · รับเข้า · ตัดออก · นับสต๊อก</div>
+          <div style="font-size:15px;font-weight:700">📦 คลังสินค้า</div>
+          <div style="font-size:11px;color:var(--muted)">สต๊อก · รับเข้า-ออก · ประวัติ</div>
         </div>
-        <div class="ch-acts">
-          <button class="hbtn doc-btn light" onclick="openDataExchange('inventory')" title="ส่งออก/นำเข้า">⇅ เอกสาร</button>
-          <button class="hbtn" onclick="openCategoryManager()" title="จัดการหมวดหมู่">🗂 หมวดหมู่</button>
-          <button class="hbtn" onclick="openAddProduct()" title="เพิ่มสินค้า">＋ สินค้า</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div id="sync-stat" class="sync-stat"><span class="sdot"></span></div>
+          <span id="gs-badge" style="display:none;font-size:10px;color:#16a34a;font-weight:700">●&nbsp;Sheets</span>
+          <button class="hbtn doc-btn" onclick="openAddProduct()">＋ เพิ่มสินค้า</button>
         </div>
       </div>
       <div class="inv-body">
-        <div class="kpi-grid">
-          <div class="kpi"><div class="kpi-label">สินค้า</div><div class="kpi-val" id="kpi-count">0</div></div>
-          <div class="kpi"><div class="kpi-label">มูลค่าคลัง</div><div class="kpi-val" id="kpi-value">฿0</div></div>
-          <div class="kpi"><div class="kpi-label">ใกล้หมด</div><div class="kpi-val" id="kpi-low">0</div></div>
+        <!-- KPI row -->
+        <div class="kpi-grid" style="margin-bottom:14px">
+          <div class="kpi-card"><div class="kpi-label">รายการทั้งหมด</div><div class="kpi-val" id="kpi-count">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">มูลค่าคลัง</div><div class="kpi-val" id="kpi-value">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">ใกล้หมด</div><div class="kpi-val" id="kpi-low">—</div></div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-          <input id="inv-search" placeholder="ค้นหาสินค้า" oninput="renderInventory()" style="flex:1;min-width:180px"/>
-          <select id="inv-cat-filter" onchange="renderInventory()" style="flex:0 1 190px"></select>
-          <button class="cat-mgr-btn" onclick="openCategoryManager()">🗂 จัดการหมวดหมู่</button>
+        <!-- Sync status -->
+        <div id="sync-stat-txt" style="font-size:11px;color:var(--muted);margin-bottom:10px"></div>
+        <!-- Search + filter -->
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input id="inv-search" placeholder="🔍 ค้นหาสินค้า..." oninput="renderInventory()"
+            style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:sans-serif">
+          <select id="inv-cat-filter" onchange="renderInventory()"
+            style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:sans-serif;background:#fff">
+            <option value="">ทุกหมวด</option>
+          </select>
         </div>
+        <!-- Tabs -->
         <div class="inv-tabs">
-          <button class="inv-tab active" onclick="switchInvTab('list',this)">รายการสินค้า</button>
-          <button class="inv-tab" onclick="switchInvTab('count',this)">นับสต๊อก</button>
-          <button class="inv-tab" onclick="switchInvTab('history',this)">ประวัติ</button>
+          <button class="inv-tab active" onclick="switchInvTab('list',this)">📦 สต๊อก</button>
+          <button class="inv-tab" onclick="switchInvTab('count',this)">🔢 นับสต๊อก</button>
+          <button class="inv-tab" onclick="switchInvTab('history',this)">📋 ประวัติ</button>
         </div>
+        <!-- Sections -->
         <div class="inv-section active" id="inv-list"></div>
         <div class="inv-section" id="inv-count">
-          <div class="card">
-            <div class="card-title">นับสต๊อกวันนี้ <span id="count-date"></span></div>
-            <div id="count-list"></div>
-            <button class="btn-save" onclick="saveCount()">💾 บันทึกยอดนับ</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:700">นับสต๊อก — <span id="count-date"></span></div>
+            <button class="hbtn doc-btn" onclick="saveCount()">✔ บันทึกการนับ</button>
           </div>
+          <div id="count-list"></div>
         </div>
         <div class="inv-section" id="inv-history">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">ประวัติการเคลื่อนไหวสินค้า</div>
           <div id="history-list"></div>
         </div>
       </div>
@@ -2612,7 +2606,7 @@ let movements=[];         // last 200 movements
 let moveCtx=null;         // currently acting on product + kind
 
 // ═══════════════════════════════════════════════════════
-// CENTRAL PRODUCT LIST (รายการสินค้า) — single source of truth
+// CENTRAL PRODUCT LIST (คลังสินค้า) — single source of truth
 // productList[].kind = 'liquid' | 'count'
 // productList[].units[] — list of all units; the first entry is the base.
 //   each unit: {id, name, basedOn:null|<unitId>, qty:Number}
@@ -3025,7 +3019,25 @@ async function switchApp(app){
   if(app==='camera'){aiRefreshProductSelect();}
   if(app==='print'){renderPrintRoom();}
 }
-function updateAdminTabVisibility(){
+function toggleAppSwitch(){
+  const body=document.getElementById('app-switch-body');
+  const btn=document.getElementById('app-switch-toggle');
+  if(!body||!btn)return;
+  const collapsed=body.style.display==='none';
+  body.style.display=collapsed?'':'none';
+  btn.textContent=collapsed?'▲':'▼';
+  localStorage.setItem('app_switch_collapsed',collapsed?'0':'1');
+}
+// restore state on load
+document.addEventListener('DOMContentLoaded',function(){
+  if(localStorage.getItem('app_switch_collapsed')==='1'){
+    const body=document.getElementById('app-switch-body');
+    const btn=document.getElementById('app-switch-toggle');
+    if(body){body.style.display='none';}
+    if(btn){btn.textContent='▼';}
+  }
+});
+
   const btn=document.getElementById('sw-admin');
   if(!btn)return;
   btn.style.display='flex';
@@ -3177,7 +3189,7 @@ function facSwitchTab(tab){
 }
 
 // ═══════════════════════════════════════════════════════
-// PRODUCT LIST (รายการสินค้า) — central catalog
+// คลังสินค้า — central catalog
 // ═══════════════════════════════════════════════════════
 // Per-product category model — dynamic, multi-select, drives per-room dropdown filtering.
 // Each product carries `categoryIds:[]` (cat tags) and optional `rooms:[]` (override the
@@ -3456,7 +3468,7 @@ function plSavePopup(){
     p.categoryIds=catIds;
     p.rooms=roomKeys;
     plSave();renderProductList();
-    showToast('รายการสินค้า','✏️ แก้ไข "'+name+'"');
+    showToast('คลังสินค้า','✏️ แก้ไข "'+name+'"');
   } else {
     if(productList.some(p=>p.name===name)){alert('มีสินค้าชื่อนี้อยู่แล้ว');return;}
     const baseId=plUid('u');
@@ -3467,7 +3479,7 @@ function plSavePopup(){
       categoryIds:catIds,rooms:roomKeys
     });
     plSave();renderProductList();
-    showToast('รายการสินค้า','✅ เพิ่ม "'+name+'"');
+    showToast('คลังสินค้า','✅ เพิ่ม "'+name+'"');
   }
   closeOv('ov-pl-edit');
   document.querySelectorAll('.cbox.open').forEach(b=>{try{cboxRenderList(b);}catch(_){}});
@@ -3477,7 +3489,7 @@ function plDelete(id){
   const p=plFind(id);if(!p)return;
   if(!confirm('ลบสินค้า "'+p.name+'" ?\n(ห้องอื่นที่อ้างอิงสินค้านี้จะใช้ไม่ได้อีก)'))return;
   productList=productList.filter(x=>x.id!==id);plSave();renderProductList();
-  showToast('รายการสินค้า','🗑️ ลบ "'+p.name+'"');
+  showToast('คลังสินค้า','🗑️ ลบ "'+p.name+'"');
   document.querySelectorAll('.cbox.open').forEach(b=>{try{cboxRenderList(b);}catch(_){}});
 }
 function plOpenAddUnit(productId){
@@ -3497,7 +3509,7 @@ function plOpenAddUnit(productId){
   if(qty<=0){alert('จำนวนต้องมากกว่า 0');return;}
   p.units.push({id:plUid('u'),name,basedOn:basedOn.id,qty});
   plSave();renderProductList();
-  showToast('รายการสินค้า','✅ เพิ่มหน่วย "'+name+'"');
+  showToast('คลังสินค้า','✅ เพิ่มหน่วย "'+name+'"');
   document.querySelectorAll('.cbox.open').forEach(b=>{try{cboxRenderList(b);}catch(_){}});
 }
 function plDeleteUnit(productId,unitId){
@@ -3657,7 +3669,7 @@ function facRenderBot(){
   const liquids=plProductsForRoomByKind('fac_bot','liquid');
   const prodOpts=liquids.length
     ?liquids.map(p=>`<option value="${p.id}" ${editing&&editing.productId===p.id?'selected':''}>${escHtml(p.name)}</option>`).join('')
-    :'<option value="">(ยังไม่มีสินค้าหมวด "วัตถุดิบ" ในรายการสินค้า)</option>';
+    :'<option value="">(ยังไม่มีสินค้าหมวด "วัตถุดิบ" ในคลังสินค้า)</option>';
   const curProdId=editing?editing.productId:(liquids[0]?liquids[0].id:'');
   const curProd=plFind(curProdId);
   const unitRows=curProd?plUnitRows(curProd):[];
@@ -3678,14 +3690,14 @@ function facRenderBot(){
       <button class="fac-del" onclick="facDeleteBot('${b.id}')" title="ลบ">🗑️</button></td></tr>`;
   }).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:18px">ยังไม่มีรายการบรรจุ</td></tr>';
   const titleHtml=editing?`✏️ แก้ไขรายการบรรจุ <button class="fac-del" onclick="facCancelEdit()" style="margin-left:8px">✕ ยกเลิก</button>`:'📦 บันทึกการบรรจุ';
-  const noProductWarn=liquids.length?'':`<div style="margin-top:8px;padding:8px 10px;background:#fef3c7;border:1px dashed #f59e0b;border-radius:8px;font-size:12px;color:#92400e">⚠️ ยังไม่มีสินค้าของเหลวในรายการสินค้า — <a href="#" onclick="event.preventDefault();switchApp('products')" style="color:#1d4ed8;text-decoration:underline">เปิดรายการสินค้า</a> เพื่อเพิ่มก่อน</div>`;
+  const noProductWarn=liquids.length?'':`<div style="margin-top:8px;padding:8px 10px;background:#fef3c7;border:1px dashed #f59e0b;border-radius:8px;font-size:12px;color:#92400e">⚠️ ยังไม่มีสินค้าของเหลวในคลังสินค้า — <a href="#" onclick="event.preventDefault();switchApp('inventory')" style="color:#1d4ed8;text-decoration:underline">เปิดคลังสินค้า</a> เพื่อเพิ่มก่อน</div>`;
   return `
     <div class="fac-card">
       <div class="fac-title">${titleHtml}</div>
       <div class="fac-grid">
         <div class="fac-fld"><label>วันที่บรรจุ</label><input type="date" id="fac-b-date" value="${editing?(editing.date||facToday()):facToday()}"></div>
         <div class="fac-fld"><label>Lot No.</label><select id="fac-b-lot">${lotOpts}</select></div>
-        <div class="fac-fld"><label>สินค้า (จากรายการสินค้า)</label><select id="fac-b-prod" onchange="facBotOnProductChange()">${prodOpts}</select></div>
+        <div class="fac-fld"><label>สินค้า (จากคลังสินค้า)</label><select id="fac-b-prod" onchange="facBotOnProductChange()">${prodOpts}</select></div>
         <div class="fac-fld"><label>หน่วย</label><select id="fac-b-unit" onchange="facBotRecalc()">${unitOpts}</select></div>
         <div class="fac-fld"><label>จำนวน</label><input type="number" id="fac-b-qty" min="1" value="${editing?(editing.qty||1):1}" oninput="facBotRecalc()"></div>
         <div class="fac-fld"><label>ราคาขาย/หน่วย (บาท) <small style="color:var(--muted)">(แก้ได้)</small></label><input type="number" step="0.01" id="fac-b-price" value="${editing?(editing.price||0):0}"></div>
@@ -3694,7 +3706,7 @@ function facRenderBot(){
       ${noProductWarn}
       <div class="fac-fld" style="margin-top:8px"><label>หมายเหตุ</label><input type="text" id="fac-b-note" value="${editing?(editing.note||''):''}"></div>
       <button class="fac-btn" onclick="facAddBottling()" ${liquids.length?'':'disabled'}>${editing?'💾 บันทึกการแก้ไข':'💾 บันทึกการบรรจุ'}</button>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px">⚠️ ระบบตรวจน้ำส้มคงเหลือต่อ Lot อัตโนมัติ · ราคา/ml/หน่วยดึงจาก "รายการสินค้า"</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">⚠️ ระบบตรวจน้ำส้มคงเหลือต่อ Lot อัตโนมัติ · ราคา/ml/หน่วยดึงจาก "คลังสินค้า"</div>
     </div>
     <div class="fac-card">
       <div class="fac-title">📋 ประวัติการบรรจุ (${visibleBot.length})</div>
@@ -3734,7 +3746,7 @@ function facRenderEmp(){
   const counts=plProductsForRoomByKind('fac_emp','count');
   const prodOpts=counts.length
     ?counts.map(p=>`<option value="${p.id}" ${editing&&editing.productId===p.id?'selected':''}>${escHtml(p.name)}</option>`).join('')
-    :'<option value="">(ยังไม่มีสินค้าหมวด "บรรจุภัณฑ์" ในรายการสินค้า)</option>';
+    :'<option value="">(ยังไม่มีสินค้าหมวด "บรรจุภัณฑ์" ในคลังสินค้า)</option>';
   const curProdId=editing?editing.productId:(counts[0]?counts[0].id:'');
   const curProd=plFind(curProdId);
   const unitRows=curProd?plUnitRows(curProd):[];
@@ -3760,18 +3772,18 @@ function facRenderEmp(){
       const low=bal<FAC_LOW_BOTTLE;
       return `<div class="k" style="${low?'background:linear-gradient(135deg,#fde2e2,#fff);border-color:#f5c2c2':''}"><div class="kl">${escHtml(p.name)}</div><div class="kv" style="${low?'color:#c62828':''}">${facFmt(bal)}</div><div class="ks">${escHtml(baseName)}</div></div>`;
     }).join('')
-    :`<div style="grid-column:1/-1;padding:14px;color:var(--muted);text-align:center">ยังไม่มีสินค้านับชิ้น — <a href="#" onclick="event.preventDefault();switchApp('products')" style="color:#0891b2;text-decoration:underline">เพิ่มในรายการสินค้า</a></div>`;
+    :`<div style="grid-column:1/-1;padding:14px;color:var(--muted);text-align:center">ยังไม่มีสินค้านับชิ้น — <a href="#" onclick="event.preventDefault();switchApp('inventory')" style="color:#0891b2;text-decoration:underline">เพิ่มในคลังสินค้า</a></div>`;
   const titleHtml=editing?`✏️ แก้ไขรายการขวดเปล่า <button class="fac-del" onclick="facCancelEdit()" style="margin-left:8px">✕ ยกเลิก</button>`:'🛒 บันทึกซื้อขวดเปล่าใหม่';
   return `
     <div class="fac-card">
-      <div class="fac-title">🍶 สต๊อกคงเหลือ (แยกตามสินค้าในรายการสินค้า)</div>
+      <div class="fac-title">🍶 สต๊อกคงเหลือ (แยกตามสินค้าในคลังสินค้า)</div>
       <div class="fac-kpi" style="grid-template-columns:repeat(3,1fr)">${balances}</div>
     </div>
     <div class="fac-card">
       <div class="fac-title">${titleHtml}</div>
       <div class="fac-grid">
         <div class="fac-fld"><label>วันที่</label><input type="date" id="fac-e-date" value="${editing?(editing.date||facToday()):facToday()}"></div>
-        <div class="fac-fld"><label>สินค้า (จากรายการสินค้า)</label><select id="fac-e-prod" onchange="facEmpOnProductChange()">${prodOpts}</select></div>
+        <div class="fac-fld"><label>สินค้า (จากคลังสินค้า)</label><select id="fac-e-prod" onchange="facEmpOnProductChange()">${prodOpts}</select></div>
         <div class="fac-fld"><label>หน่วย</label><select id="fac-e-unit" onchange="facEmpRecalc()">${unitOpts}</select></div>
         <div class="fac-fld"><label>จำนวน <small style="color:var(--muted)">(ตามหน่วยที่เลือก)</small></label><input type="number" id="fac-e-qty" min="1" value="${editing?(editing.inputQty||editing.qty||1):1}" oninput="facEmpRecalc()"></div>
         <div class="fac-fld"><label>ราคา/หน่วย (บาท) <small style="color:var(--muted)">(แก้ได้)</small></label><input type="number" step="0.01" id="fac-e-price" value="${editing?(editing.inputPrice||editing.price||0):0}" oninput="facEmpRecalc()"></div>
@@ -3849,7 +3861,7 @@ function facRenderDash(){
     :'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:14px">—</td></tr>';
   const empHtml=empRows.length
     ?empRows.map(r=>`<tr><td>${escHtml(r.label)}</td><td style="${r.low?'color:#c62828;font-weight:700':''}">${facFmt(r.bal)}</td></tr>`).join('')
-    :'<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:14px">— เพิ่มสินค้านับชิ้นในรายการสินค้า —</td></tr>';
+    :'<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:14px">— เพิ่มสินค้านับชิ้นในคลังสินค้า —</td></tr>';
   return `
     <div class="fac-card">
       <div class="fac-title">📊 สรุปภาพรวม</div>
@@ -3865,14 +3877,14 @@ function facRenderDash(){
       ${alerts.join('')}
     </div>
     <div class="fac-card">
-      <div class="fac-title">📦 สต็อก FG (สินค้าสำเร็จรูป) — แยกตามสินค้าจากรายการสินค้า</div>
+      <div class="fac-title">📦 สต็อก FG (สินค้าสำเร็จรูป) — แยกตามสินค้าจากคลังสินค้า</div>
       <table class="fac-tbl">
         <thead><tr><th>สินค้า · หน่วย</th><th>บรรจุรวม</th><th>จำหน่าย</th><th>คงคลัง</th></tr></thead>
         <tbody>${fgHtml}</tbody>
       </table>
     </div>
     <div class="fac-card">
-      <div class="fac-title">🍶 สต็อกขวดเปล่า — แยกตามสินค้านับชิ้นจากรายการสินค้า</div>
+      <div class="fac-title">🍶 สต็อกขวดเปล่า — แยกตามสินค้านับชิ้นจากคลังสินค้า</div>
       <table class="fac-tbl">
         <thead><tr><th>สินค้า</th><th>คงเหลือ</th></tr></thead>
         <tbody>${empHtml}</tbody>
@@ -3936,11 +3948,11 @@ function facAddBottling(){
   if(!lot){alert('กรุณาเลือก Lot');return;}
   const productId=document.getElementById('fac-b-prod').value;
   const unitId=document.getElementById('fac-b-unit').value;
-  if(!productId||!unitId){alert('กรุณาเลือกสินค้าและหน่วย (จากรายการสินค้า)');return;}
+  if(!productId||!unitId){alert('กรุณาเลือกสินค้าและหน่วย (จากคลังสินค้า)');return;}
   const lk=plLookup(productId,unitId);
-  if(!lk){alert('ไม่พบสินค้าในรายการสินค้า — โปรดเลือกใหม่');return;}
+  if(!lk){alert('ไม่พบสินค้าในคลังสินค้า — โปรดเลือกใหม่');return;}
   const mlPer=Number(lk.unit.totalMl)||0;
-  if(mlPer<=0){alert('สินค้านี้ไม่มี ml ต่อหน่วย — แก้ไขในรายการสินค้าก่อน');return;}
+  if(mlPer<=0){alert('สินค้านี้ไม่มี ml ต่อหน่วย — แก้ไขในคลังสินค้าก่อน');return;}
   const qty=+document.getElementById('fac-b-qty').value||0;
   if(qty<=0){alert('กรุณาใส่จำนวน > 0');return;}
   const used=mlPer*qty;
@@ -4001,7 +4013,7 @@ function facAddEmpty(){
   const date=document.getElementById('fac-e-date').value||facToday();
   const productId=document.getElementById('fac-e-prod').value;
   const unitId=document.getElementById('fac-e-unit').value;
-  if(!productId||!unitId){alert('กรุณาเลือกสินค้าและหน่วย (จากรายการสินค้า)');return;}
+  if(!productId||!unitId){alert('กรุณาเลือกสินค้าและหน่วย (จากคลังสินค้า)');return;}
   const lk=plLookup(productId,unitId);
   if(!lk){alert('ไม่พบสินค้า');return;}
   const inputQty=Math.abs(+document.getElementById('fac-e-qty').value||0);
@@ -6873,7 +6885,7 @@ async function saveExpenseItems(){
   const snap=_orgSnapshot();
   try{
     for(const it of saleQueue){
-      // ถ้าสินค้ามีในรายการสินค้า (มีสต็อก) → ตัดสต็อกด้วย
+      // ถ้าสินค้ามีในคลังสินค้า (มีสต็อก) → ตัดสต็อกด้วย
       const hasProd=products.some(p=>p.name===it.name);
       if(hasProd){
         applyStockMove({name:it.name,category:it.category,qty:it.qty,unit:it.unit,price:it.price,__skipJuiceAuto:true},'out','ค่าใช้จ่าย ห้อง '+r.name);
@@ -7272,7 +7284,7 @@ function cboxRenderList(box){
   // ── Central Product List section (always at the top, all scopes) ──
   // Rendered as Product · Unit entries; selection auto-fills unit + price (+ ml for liquids).
   // Each room sees only the products tagged for it (categories drive the visibility).
-  // Edit mode is intentionally suppressed here — central list is edited only on the รายการสินค้า page.
+  // Edit mode is intentionally suppressed here — central list is edited only on the คลังสินค้า page.
   if(!editing){
     const roomKey=scope==='room'?'sell':'fin_exp';
     const plEntries=plPickerEntries().filter(e=>{const p=plFind(e.productId);return p&&plProductInRoom(p,roomKey);});
@@ -7300,7 +7312,7 @@ function cboxRenderList(box){
         const seen=new Set();
         byCat[cid].items=byCat[cid].items.filter(e=>{const k=e.productId+'|'+e.unitId;if(seen.has(k))return false;seen.add(k);return true;});
       });
-      const headLabel=scope==='room'?'📋 รายการสินค้า · "สินค้าสำเร็จรูป"':'📋 รายการสินค้า · เลือก "สินค้า · หน่วย"';
+      const headLabel=scope==='room'?'📋 คลังสินค้า · "สินค้าสำเร็จรูป"':'📋 คลังสินค้า · เลือก "สินค้า · หน่วย"';
       html+=`<div class="cbox-group" style="background:#ecfeff;color:#0e7490">${headLabel}</div>`;
       order.forEach(cid=>{
         const grp=byCat[cid];
@@ -7318,7 +7330,7 @@ function cboxRenderList(box){
         });
       });
       // Quick link to manage central list
-      html+=`<div style="padding:6px 10px;text-align:right"><a href="#" onclick="event.preventDefault();const c=this.closest('.cbox');if(c)cboxClose(c);switchApp('products');" style="font-size:11px;color:#0891b2;text-decoration:underline">⚙️ จัดการรายการสินค้า</a></div>`;
+      html+=`<div style="padding:6px 10px;text-align:right"><a href="#" onclick="event.preventDefault();const c=this.closest('.cbox');if(c)cboxClose(c);switchApp('inventory');" style="font-size:11px;color:#0891b2;text-decoration:underline">⚙️ จัดการคลังสินค้า</a></div>`;
     }
   }
   groups.forEach(g=>{
@@ -8667,7 +8679,7 @@ function openAddProduct(){
   document.getElementById('ov-prod').classList.add('open');
 }
 async function editProduct(id){
-  if(!(await requireAdmin('แก้ไขรายการสินค้าในคลัง')))return;
+  if(!(await requireAdmin('แก้ไขสินค้าในคลังสินค้า')))return;
   const p=products.find(x=>x.id===id);
   if(!p){alert('ไม่พบสินค้านี้');return;}
   editingProductId=id;
@@ -8851,7 +8863,7 @@ function openDataExchange(scope){
   document.getElementById('ov-docs').classList.add('open');
 }
 function docScopeLabel(s){
-  return ({chat:'ห้องขาย',feed:'ROOM somsod',l2:'ห้องประชุม',factory:'โรงงาน',products:'รายการสินค้า',finance:'รายรับ-รายจ่าย',admin:'แอดมิน',ai:'แชท AI',camera:'กล้อง AI',all:'ทั้งแอป'})[s]||s;
+  return ({chat:'ห้องขาย',feed:'ROOM somsod',l2:'ห้องประชุม',factory:'โรงงาน',products:'คลังสินค้า',finance:'รายรับ-รายจ่าย',admin:'แอดมิน',ai:'แชท AI',camera:'กล้อง AI',all:'ทั้งแอป'})[s]||s;
 }
 function appSnapshot(){
   return {
@@ -11002,13 +11014,15 @@ function faOpenPreviewSheet(){
 }
 function faPreviewFull(){
   document.getElementById('fa-sheet').classList.remove('open');
-  document.getElementById('fa-ov').classList.remove('open');
-  faSaveDoc(false);
+  const _faOv=document.getElementById('fa-ov');if(_faOv)_faOv.classList.remove('open');
+  try{ faSaveDoc(false); }catch(e){ console.warn('faSaveDoc:',e); alert('Error faSaveDoc: '+e.message); }
   faPreviewMode='full';
-  faRenderPreviewContent();
-  document.getElementById('fa-preview-title').textContent='เอกสาร A4';
-  document.getElementById('fa-preview-ov').classList.add('open');
-  // Scale A4 to fit screen after render
+  try{ faRenderPreviewContent(); }catch(e){ console.warn('faRender:',e); alert('Error faRender: '+e.message); }
+  const po=document.getElementById('fa-preview-ov');
+  if(!po) return;
+  const pt=document.getElementById('fa-preview-title');
+  if(pt) pt.textContent='เอกสาร A4';
+  po.classList.add('open');
   setTimeout(faScaleA4, 80);
 }
 function faScaleA4(){
@@ -11511,6 +11525,26 @@ else{
     <div class="room-popup-back" id="room-popup-back" style="display:none">
       <button onclick="roomPopupBack()">← ย้อนกลับ</button>
     </div>
+  </div>
+</div>
+<!-- ══ FA PREVIEW OVERLAY — body level (fix iOS overflow:hidden clipping) ══ -->
+<div class="fa-preview-ov" id="fa-preview-ov">
+  <div class="fa-preview-bar">
+    <button class="fa-icon-btn" onclick="faClosePreview()">✕</button>
+    <div class="fa-preview-bar-title" id="fa-preview-title">พรีวิวเอกสาร</div>
+    <button class="fa-icon-btn primary" onclick="faDoPrint()">🖨 พิมพ์</button>
+  </div>
+  <div class="fa-preview-content" id="fa-preview-content"></div>
+</div>
+<!-- ══ FA ACTION SHEET — body level ══ -->
+<div class="fa-sheet-ov" id="fa-sheet" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="fa-sheet">
+    <div class="fa-sheet-title">พรีวิว / แชร์</div>
+    <div class="fa-sheet-grp">
+      <button class="fa-sheet-btn" onclick="faPreviewFull()">📄 เอกสารเต็มรูปแบบ (A4)</button>
+      <button class="fa-sheet-btn" onclick="faPreviewSlip()">🧾 ออนไลน์สลิป</button>
+    </div>
+    <button class="fa-sheet-cancel" onclick="document.getElementById('fa-sheet').classList.remove('open')">ยกเลิก</button>
   </div>
 </div>
 </body>
